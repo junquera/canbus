@@ -94,7 +94,7 @@ pantalla.addEvent(notifica_apertura_puerta_izda, function(x){
   console.log([x.name], "Abierta puerta izda");
 });
 pantalla.addEvent(notifica_cierre_puerta_izda, function(x){
-  console.log([x.name], "Abierta puerta izda");
+  console.log([x.name], "Cerrada puerta izda");
 });
 
 motor.addEvent(enciende_motor, function(x){

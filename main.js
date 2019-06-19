@@ -86,6 +86,9 @@ apaga_motor = new Command(motor.id);
 notifica_motor_apagado = new Command(pantalla.id);
 notifica_alarma_error = new Command(pantalla.id);
 
+flag_motor_encendido = new Command(cpu.id);
+flag_motor_apagado = new Command(cpu.id);
+
 flag_puerta_abierta = new Command(cpu.id);
 flag_puerta_cerrada = new Command(cpu.id);
 
@@ -101,10 +104,16 @@ alarma.addEvent(check_alarma, function(x){
   }
 });
 
+var running = true;
+function exit() {
+  running = false;
+}
+
 function monitor_alarma_on(){
   setTimeout(function(){
     monitor_alarma.send(check_alarma);
-    monitor_alarma_on();
+    if(running)
+      monitor_alarma_on();
   }, 100);
 }
 
@@ -122,10 +131,10 @@ puerta_izda.addEvent(cierra_puerta_izda, function(x){
 });
 
 motor.addEvent(enciende_motor, function(x){
-  x.send(notifica_motor_encendido);
+  x.send(flag_motor_encendido);
 });
 motor.addEvent(apaga_motor, function(x){
-  x.send(notifica_motor_apagado);
+  x.send(flag_motor_apagado);
 });
 
 cpu.addEvent(flag_puerta_abierta, function(x){
@@ -135,6 +144,13 @@ cpu.addEvent(flag_puerta_abierta, function(x){
 cpu.addEvent(flag_puerta_cerrada, function(x){
   puerta_abierta = false;
   x.send(notifica_cierre_puerta_izda);
+});
+
+cpu.addEvent(flag_motor_encendido, function(x){
+  x.send(notifica_motor_encendido);
+});
+cpu.addEvent(flag_motor_apagado, function(x){
+  x.send(notifica_motor_apagado);
 });
 
 
@@ -164,7 +180,7 @@ monitor_alarma_on();
 cb.connectComponent(cpu);
 
 cb.connectComponent(puerta_izda);
-cb.connectComponent(pantalla);
+// cb.connectComponent(pantalla);
 cb.connectComponent(motor);
 
 
@@ -194,6 +210,9 @@ setTimeout(function(){
       paraCoche(cb);
       setTimeout(function(){
         sale(cb);
+        setTimeout(function(){
+          exit();
+        }, 1000);
       }, 1000);
     }, 1000);
   }, 1000);

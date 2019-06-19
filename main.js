@@ -38,11 +38,15 @@ class Component {
   }
 }
 
+var cpu = new Component("cpu");
+var puerta_izda = new Component("puerta_izda");
 
-puerta_izda = new Component("puerta_izda");
-pantalla = new Component("pantalla");
-motor = new Component("motor");
+var puerta_abierta = false;
 
+var pantalla = new Component("pantalla");
+var motor = new Component("motor");
+var monitor_alarma = new Component("monitor_alarma");
+var alarma = new Component("alarma");
 
 class Command {
   constructor(id, code){
@@ -80,21 +84,41 @@ enciende_motor = new Command(motor.id);
 notifica_motor_encendido = new Command(pantalla.id);
 apaga_motor = new Command(motor.id);
 notifica_motor_apagado = new Command(pantalla.id);
+notifica_alarma_error = new Command(pantalla.id);
 
+flag_puerta_abierta = new Command(cpu.id);
+flag_puerta_cerrada = new Command(cpu.id);
+
+check_alarma = new Command(alarma.id);
+alarma_ok = new Command(monitor_alarma.id);
+alarma_err = new Command(monitor_alarma.id);
+
+alarma.addEvent(check_alarma, function(x){
+  if(puerta_abierta){
+    x.send(alarma_err);
+  } else {
+    x.send(alarma_ok);
+  }
+});
+
+function monitor_alarma_on(){
+  setTimeout(function(){
+    monitor_alarma.send(check_alarma);
+    monitor_alarma_on();
+  }, 100);
+}
+
+monitor_alarma.addEvent(alarma_ok, function(x){
+});
+monitor_alarma.addEvent(alarma_err, function(x){
+  x.send(notifica_alarma_error);
+});
 
 puerta_izda.addEvent(abre_puerta_izda, function(x){
-  x.send(notifica_apertura_puerta_izda);
+  x.send(flag_puerta_abierta);
 });
-
 puerta_izda.addEvent(cierra_puerta_izda, function(x){
-  x.send(notifica_cierre_puerta_izda);
-});
-
-pantalla.addEvent(notifica_apertura_puerta_izda, function(x){
-  console.log([x.name], "Abierta puerta izda");
-});
-pantalla.addEvent(notifica_cierre_puerta_izda, function(x){
-  console.log([x.name], "Cerrada puerta izda");
+  x.send(flag_puerta_cerrada);
 });
 
 motor.addEvent(enciende_motor, function(x){
@@ -104,22 +128,53 @@ motor.addEvent(apaga_motor, function(x){
   x.send(notifica_motor_apagado);
 });
 
+cpu.addEvent(flag_puerta_abierta, function(x){
+  puerta_abierta = true;
+  x.send(notifica_apertura_puerta_izda);
+});
+cpu.addEvent(flag_puerta_cerrada, function(x){
+  puerta_abierta = false;
+  x.send(notifica_cierre_puerta_izda);
+});
+
+
+
+pantalla.addEvent(notifica_apertura_puerta_izda, function(x){
+  console.log([x.name], "Abierta puerta izda");
+});
+pantalla.addEvent(notifica_cierre_puerta_izda, function(x){
+  console.log([x.name], "Cerrada puerta izda");
+});
 pantalla.addEvent(notifica_motor_encendido, function(x){
   console.log([x.name], "Motor encendido");
 });
 pantalla.addEvent(notifica_motor_apagado, function(x){
   console.log([x.name], "Motor apagado");
 });
+pantalla.addEvent(notifica_alarma_error, function(x){
+    console.log([x.name], "Error en alarma");
+});
 
 cb = new CanBus();
+
+cb.connectComponent(monitor_alarma);
+cb.connectComponent(alarma);
+monitor_alarma_on();
+
+cb.connectComponent(cpu);
+
 cb.connectComponent(puerta_izda);
 cb.connectComponent(pantalla);
 cb.connectComponent(motor);
 
+
 function entra(cb){
   cb.w(abre_puerta_izda);
-  cb.w(cierra_puerta_izda);
+  setTimeout(function(){
+    cb.w(cierra_puerta_izda);
+  }, 1000);
 }
+
 function arrancaCoche(cb){
   cb.w(enciende_motor);
 }
@@ -128,9 +183,18 @@ function paraCoche(cb){
 }
 
 function sale(cb){
-  cb.w(abre_puerta_izda);
-  cb.w(cierra_puerta_izda);
+  entra(cb);
 }
 
-entra(cb);
-sale(cb);
+setTimeout(function(){
+  entra(cb);
+  setTimeout(function(){
+    arrancaCoche(cb);
+    setTimeout(function(){
+      paraCoche(cb);
+      setTimeout(function(){
+        sale(cb);
+      }, 1000);
+    }, 1000);
+  }, 1000);
+}, 1000);

@@ -1,5 +1,4 @@
 var cb = new CanBus();
-function main(){
 
   var coche = new Coche();
 
@@ -50,14 +49,6 @@ function main(){
   function exit() {
     running = false;
     alert("Fin de ejecución!");
-  }
-
-  function monitor_alarma_on(){
-    setTimeout(function(){
-      monitor_alarma.send(check_alarma);
-      if(running)
-        monitor_alarma_on();
-    }, 100);
   }
 
   monitor_alarma.addEvent(alarma_ok, function(x){
@@ -133,7 +124,6 @@ function main(){
 
   cb.connectComponent(monitor_alarma);
   cb.connectComponent(alarma);
-  monitor_alarma_on();
 
   cb.connectComponent(cpu);
 
@@ -160,6 +150,18 @@ function main(){
     entra(cb);
   }
 
+function main(){
+
+
+  function monitor_alarma_on(){
+    setTimeout(function(){
+      monitor_alarma.send(check_alarma);
+      if(running)
+        monitor_alarma_on();
+    }, 100);
+  }
+  monitor_alarma_on();
+
   setTimeout(function(){
     entra(cb);
     setTimeout(function(){
@@ -171,13 +173,13 @@ function main(){
           setTimeout(function(){
             exit();
           }, 1000);
-        }, 1000);
-      }, 1000);
-    }, 1000);
-  }, 1000);
+        }, 4000);
+      }, 3000);
+    }, 2000);
+  }, 1500);
 }
 
-setTimeout(main, 2000);
+// setTimeout(main, 2000);
 
 
 function ejecuta(ordenes){
@@ -188,7 +190,7 @@ function ejecuta(ordenes){
 
     setTimeout(function(){
       ejecuta(ordenes);
-    }, 200);
+    }, 100);
   } else {
     alert("End");
   }
@@ -199,3 +201,4 @@ function launchCode(){
   ejecuta(ordenes);
 }
 document.getElementById('launch').onclick = launchCode;
+document.getElementById('start').onclick = main;

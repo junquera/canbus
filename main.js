@@ -78,6 +78,7 @@ var cb = new CanBus();
   cpu.addEvent(flag_puerta_abierta, function(x){
     puerta_abierta = true;
     x.send(notifica_apertura_puerta_izda);
+    x.send(alarma_err);
   });
   cpu.addEvent(flag_puerta_cerrada, function(x){
     puerta_abierta = false;
@@ -185,9 +186,7 @@ function main(){
 function ejecuta(ordenes){
   var orden = ordenes.shift();
   if(orden){
-    console.log(orden);
     cb.w(Command.parse(orden));
-
     setTimeout(function(){
       ejecuta(ordenes);
     }, 100);

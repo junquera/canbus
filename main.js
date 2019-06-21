@@ -180,12 +180,11 @@ function main(){
   }, 1500);
 }
 
-// setTimeout(main, 2000);
 
 
 function ejecuta(ordenes){
   var orden = ordenes.shift();
-  if(orden){
+  if(orden !== undefined){
     cb.w(Command.parse(orden));
     setTimeout(function(){
       ejecuta(ordenes);
@@ -194,10 +193,12 @@ function ejecuta(ordenes){
     alert("End");
   }
 }
+
 function launchCode(){
   alert("Start");
   var ordenes = document.getElementById('ordenes').value.split('\n');
   ejecuta(ordenes);
 }
+
 document.getElementById('launch').onclick = launchCode;
 document.getElementById('start').onclick = main;
